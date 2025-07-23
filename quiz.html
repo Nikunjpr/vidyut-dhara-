@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>विद्युत धारा - इंटरैक्टिव क्विज़</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #setup-screen, #quiz-screen, #results-screen {
+            padding: 30px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        
+        .question-text {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        ul.options {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.options li {
+            background-color: #eaf2fa;
+            border: 2px solid #d1e0ee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        ul.options li:hover:not(.disabled) {
+            background-color: #d1e0ee;
+            border-color: #4a90e2;
+        }
+
+        ul.options li.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        ul.options li.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            font-weight: bold;
+        }
+        
+        ul.options li.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #357abd;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #prev-btn {
+            background-color: #6c757d;
+        }
+        #prev-btn:hover:not(:disabled) {
+            background-color: #5a6268;
+        }
+
+        #submit-btn {
+            background-color: #28a745;
+        }
+        #submit-btn:hover {
+            background-color: #218838;
+        }
+        
+        #restart-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        #restart-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .timer {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #4a90e2;
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: #4a90e2;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        #results-screen .score {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        #results-screen .stars {
+            font-size: 2.5em;
+            color: #ffc107;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #review-container {
+            margin-top: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .review-question {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .review-question p {
+            font-weight: bold;
+        }
+        .review-question .user-answer.correct {
+            color: #155724;
+        }
+        .review-question .user-answer.incorrect {
+            color: #721c24;
+        }
+        .review-question .correct-answer {
+            color: #28a745;
+        }
+
+        .hidden {
+            display: none;
+        }
+        
+        #timer-setup select, #timer-setup button {
+            padding: 10px;
+            font-size: 1em;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <div id="setup-screen">
+             <div class="quiz-header">
+                <h1>कक्षा 10 - विज्ञान (विद्युत धारा)</h1>
+             </div>
+             <div style="text-align:center; padding: 30px;">
+                <h2>क्विज़ में आपका स्वागत है!</h2>
+                <p>प्रत्येक प्रश्न के लिए एक समय सीमा चुनें:</p>
+                <div id="timer-setup">
+                    <select id="time-select">
+                        <option value="15">15 सेकंड</option>
+                        <option value="20" selected>20 सेकंड</option>
+                        <option value="25">25 सेकंड</option>
+                        <option value="30">30 सेकंड</option>
+                        <option value="9999">कोई समय सीमा नहीं</option>
+                    </select>
+                    <button id="start-btn">क्विज़ शुरू करें</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div class="quiz-header">
+                <p id="question-counter"></p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+             <div style="padding: 30px;">
+                <div class="timer" id="timer"></div>
+                <div id="question-area">
+                    <h2 class="question-text"></h2>
+                    <ul class="options"></ul>
+                </div>
+                <div class="button-container">
+                    <button id="prev-btn">पिछला</button>
+                    <button id="skip-btn">छोड़ें</button>
+                    <button id="submit-btn" class="hidden">सबमिट करें</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-screen" class="hidden">
+            <h2>क्विज़ समाप्त!</h2>
+            <div class="stars" id="star-rating"></div>
+            <div class="score" id="score-text"></div>
+            <div class="score" id="score-percentage"></div>
+            <div id="review-container">
+                <h3>अपने उत्तरों की समीक्षा करें</h3>
+            </div>
+            <div class="button-container" style="justify-content: center;">
+                <button id="restart-btn">फिर से शुरू करें</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            // OCR से निकाले गए सभी प्रश्न यहाँ डालें
+            // Page 1
+            { question: "1. स्थिर विद्युत में आवेश-", options: ["विरामावस्था में रहते हैं", "गति की अवस्था में रहते हैं", "दोनों अवस्था में रहते हैं", "किसी भी अवस्था में नहीं रहते हैं"], answer: 0 },
+            { question: "2. धारा विद्युत में आवेश रहते हैं-", options: ["विरामावस्था में", "गति की अवस्था में", "किसी भी अवस्था में रह सकते हैं", "इनमें से कोई नहीं"], answer: 1 },
+            { question: "3. विद्युत धारा का S.I. मात्रक है-", options: ["वोल्ट", "कुलॉम", "वाट", "एम्पियर"], answer: 3 },
+            { question: "4. सेल बाहरी परिपथ में जिस प्लेट से धारा भेजती है, उसे सेल को कहते हैं-", options: ["धन-ध्रुव", "ऋण-ध्रुव", "दोनों", "इनमें से कोई नहीं"], answer: 0 },
+            // Page 2
+            { question: "5. विद्युत प्रवाह की दिशा मानी जाती है-", options: ["ऋण टर्मिनल से धन टर्मिनल की ओर", "धन टर्मिनल से ऋण टर्मिनल की ओर", "किसी भी दिशा में", "इनमें से कोई नहीं"], answer: 1 },
+            { question: "6. एकांक समय में विद्युत आवेश के परिमाण के प्रवाह को क्या कहा जाता है?", options: ["विद्युत विभव", "विद्युत प्रतिरोध", "विद्युत धारा", "इनमें से कोई नहीं"], answer: 2 },
+            // ... यहाँ बाकी के सारे प्रश्न जोड़ें
+        ];
+
+        const setupScreen = document.getElementById('setup-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startBtn = document.getElementById('start-btn');
+        const timeSelect = document.getElementById('time-select');
+
+        const questionCounter = document.getElementById('question-counter');
+        const progressBar = document.querySelector('.progress-bar');
+        const timerEl = document.getElementById('timer');
+        const questionText = document.querySelector('.question-text');
+        const optionsList = document.querySelector('.options');
+        const prevBtn = document.getElementById('prev-btn');
+        const skipBtn = document.getElementById('skip-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        const scoreText = document.getElementById('score-text');
+        const scorePercentage = document.getElementById('score-percentage');
+        const starRating = document.getElementById('star-rating');
+        const reviewContainer = document.getElementById('review-container');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Base64 encoded sounds to avoid needing external files
+        const correctSound = new Audio('data:audio/mpeg;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(30).join('AAAAAAAA//+A'));
+        const incorrectSound = new Audio('data:audio/mpeg;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YYS'+'wz/3/v/9///8AAAD//w==');
+
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let timer;
+        let timePerQuestion;
+        
+        function startQuiz() {
+            timePerQuestion = parseInt(timeSelect.value);
+            setupScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers.fill(null);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            if (currentQuestionIndex >= quizData.length) {
+                showResults();
+                return;
+            }
+
+            const question = quizData[currentQuestionIndex];
+            questionCounter.innerText = `प्रश्न ${currentQuestionIndex + 1} / ${quizData.length}`;
+            progressBar.style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
+            questionText.innerText = question.question;
+
+            question.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                li.innerText = option;
+                li.dataset.index = index;
+                li.addEventListener('click', selectAnswer);
+                optionsList.appendChild(li);
+            });
+            
+            // Check if an answer was already given for this question (when using prev/next)
+            if(userAnswers[currentQuestionIndex] !== null) {
+                showPreviousAnswer();
+            } else {
+                 startTimer();
+            }
+
+            prevBtn.disabled = currentQuestionIndex === 0;
+            skipBtn.innerText = "छोड़ें";
+            
+            if(currentQuestionIndex === quizData.length - 1) {
+                skipBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                skipBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+        
+        function resetState() {
+            clearTimeout(timer);
+            while (optionsList.firstChild) {
+                optionsList.removeChild(optionsList.firstChild);
+            }
+        }
+        
+        function startTimer() {
+            let timeLeft = timePerQuestion;
+            timerEl.innerText = `${timeLeft}s`;
+            if (timePerQuestion > 9000) {
+                 timerEl.innerText = "∞"; // Infinity symbol for no time limit
+                 return;
+            }
+            timer = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleNext(); // Auto-skip when time is up
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(e) {
+            // This function runs only once per question click
+            clearInterval(timer);
+            const selectedOption = e.target;
+            const selectedIndex = parseInt(selectedOption.dataset.index);
+            userAnswers[currentQuestionIndex] = selectedIndex;
+
+            const correctIndex = quizData[currentQuestionIndex].answer;
+
+            if (selectedIndex === correctIndex) {
+                score++; // Increment score only on the first try
+                selectedOption.classList.add('correct');
+                correctSound.play().catch(e => console.log("Sound play failed"));
+            } else {
+                selectedOption.classList.add('incorrect');
+                optionsList.children[correctIndex].classList.add('correct');
+                incorrectSound.play().catch(e => console.log("Sound play failed"));
+            }
+            
+            // Lock all options
+            Array.from(optionsList.children).forEach(li => li.classList.add('disabled'));
+            skipBtn.innerText = "अगला";
+        }
+
+        function showPreviousAnswer() {
+            // Function to show the feedback for an already answered question
+            const correctIndex = quizData[currentQuestionIndex].answer;
+            const userAnswerIndex = userAnswers[currentQuestionIndex];
+
+            if(userAnswerIndex === correctIndex) {
+                 optionsList.children[userAnswerIndex].classList.add('correct');
+            } else {
+                optionsList.children[userAnswerIndex].classList.add('incorrect');
+                optionsList.children[correctIndex].classList.add('correct');
+            }
+
+            Array.from(optionsList.children).forEach(li => li.classList.add('disabled'));
+            skipBtn.innerText = "अगला";
+            timerEl.innerText = "Locked";
+        }
+
+        function handleNext() {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        function handlePrev() {
+            currentQuestionIndex--;
+            showQuestion();
+        }
+        
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            progressBar.style.width = '100%';
+            
+            const percentage = ((score / quizData.length) * 100).toFixed(1);
+            scoreText.innerText = `आपका स्कोर: ${score} / ${quizData.length}`;
+            scorePercentage.innerText = `कुल प्रतिशत: ${percentage}%`;
+
+            let stars = '';
+            const starCount = Math.round(percentage / 20);
+            for(let i=0; i<5; i++){
+                stars += i < starCount ? '★' : '☆';
+            }
+            starRating.innerHTML = stars;
+            
+            reviewContainer.innerHTML = '<h3>अपने उत्तरों की समीक्षा करें</h3>';
+            quizData.forEach((q, index) => {
+                const reviewDiv = document.createElement('div');
+                reviewDiv.className = 'review-question';
+                
+                let userAnswerText;
+                const userAnswerIndex = userAnswers[index];
+                
+                if (userAnswerIndex !== null) {
+                    const isCorrect = userAnswerIndex === q.answer;
+                    userAnswerText = `<span class="user-answer ${isCorrect ? 'correct' : 'incorrect'}">आपका उत्तर: ${q.options[userAnswerIndex]}</span>`;
+                } else {
+                    userAnswerText = `<span class="user-answer incorrect">आपने उत्तर नहीं दिया</span>`;
+                }
+                
+                reviewDiv.innerHTML = `
+                    <p>${q.question}</p>
+                    ${userAnswerText}
+                    <br>
+                    <span class="correct-answer">सही उत्तर: ${q.options[q.answer]}</span>
+                `;
+                reviewContainer.appendChild(reviewDiv);
+            });
+        }
+        
+        function restartQuiz() {
+            resultsScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+        }
+
+        startBtn.addEventListener('click', startQuiz);
+        skipBtn.addEventListener('click', handleNext);
+        prevBtn.addEventListener('click', handlePrev);
+        submitBtn.addEventListener('click', showResults);
+        restartBtn.addEventListener('click', restartQuiz);
+    </script>
+</body>
+</html>
